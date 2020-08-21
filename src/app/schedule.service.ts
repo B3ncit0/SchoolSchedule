@@ -54,6 +54,7 @@ export class Teacher {
   // id: number;
   qualifications: String[];
   schedules?: Schedule[];
+  breakTF:boolean;
 }
 export class Tutoring {
   name: string;
@@ -65,15 +66,19 @@ export class Tutoring {
 let tutoringTeachers: Teacher[] = [
   {
     name: "Bruce Wayne",
+    breakTF:false,
     qualifications: String[2] = ["Math-CoTeaching","Speech-Therapy" ]
   }, {
     name: "Mrs. Gutierrez",
+    breakTF:false,
     qualifications: String[2] = ["Math-CoTeaching","Speech-Therapy" ]
   }, {
     name: "Dr. Freeze",
+    breakTF:false,
     qualifications: String[1] = ["Speech-Therapy"]
   }, {
     name: "Mrs. Emsworth",
+    breakTF:false,
     qualifications: String[2] = ["Speech-Therapy"]
   }
 ]
@@ -449,7 +454,7 @@ let tabs: Tab[] = [
     activities: activityData,
     scheduleDivisions: classData
   }, {
-    text: "Math-CoTeaching",
+    text: "Tutoring Schedule",
     icon: "event",
     type:"tutoring",
     scheduleDivisions:classData,
