@@ -9,6 +9,8 @@ import {
 } from 'devextreme-angular';
 import { ScheduleService, Activity, Division, Tab, Teacher, Student, Tutoring, Schedule } from './schedule.service';
 import Query from 'devextreme/data/query';
+import { expressionType } from '@angular/compiler/src/output/output_ast';
+import { scheduled } from 'rxjs';
 
 
 @Component({
@@ -20,7 +22,6 @@ import Query from 'devextreme/data/query';
 export class AppComponent {
     @ViewChild(DxSchedulerComponent, { static: false }) scheduler: DxSchedulerComponent;
     currentDate: Date = new Date(2015, 4, 25);
-    currentDate1: Date = new Date(2015, 4, 26);
     startDayHour: number = 7;
     endDayHour: number = 17;
     tabs: Tab[];
@@ -28,91 +29,13 @@ export class AppComponent {
     timerSetTF: boolean;
     tutorTeachers: Teacher[];
     qualifiedTeachers: Teacher[] = [];
+    conflictStudents: Student[] = [];
     constructor(service: ScheduleService) {
         this.tabs = service.getTabs();
         this.timerSetTF = true;
         this.currentTab = this.tabs[0];
         this.tutorTeachers = service.getTutoringTeachers();
     }
-
-    // onAppointmentFormOpening(data) {
-    //     var that = this,
-    //         form = data.form,
-    //         movieInfo = that.getMovieById(data.appointmentData.movieId) || {},
-    //         startDate = data.appointmentData.startDate;
-
-    //     form.option("items", [{
-    //         label: {
-    //             text: "Movie"
-    //         },
-    //         editorType: "dxSelectBox",
-    //         dataField: "movieId",
-    //         editorOptions: {
-    //             items: that.moviesData,
-    //             displayExpr: "text",
-    //             valueExpr: "id",
-    //             onValueChanged: function (args) {
-    //                 movieInfo = that.getMovieById(args.value);
-    //                 form.getEditor("director")
-    //                     .option("value", movieInfo.director);
-    //                 form.getEditor("endDate")
-    //                     .option("value", new Date(startDate.getTime() + 60 * 1000 * movieInfo.duration));
-    //             }.bind(this)
-    //         }
-    //     }, {
-    //         label: {
-    //             text: "Director"
-    //         },
-    //         name: "director",
-    //         editorType: "dxTextBox",
-    //         editorOptions: {
-    //             value: movieInfo.director,
-    //             readOnly: true
-    //         }
-    //     }, {
-    //         dataField: "startDate",
-    //         editorType: "dxDateBox",
-    //         editorOptions: {
-    //             width: "100%",
-    //             type: "datetime",
-    //             onValueChanged: function (args) {
-    //                 startDate = args.value;
-    //                 form.getEditor("endDate")
-    //                     .option("value", new Date(startDate.getTime() + 60 * 1000 * movieInfo.duration));
-    //             }
-    //         }
-    //     }, {
-    //         name: "endDate",
-    //         dataField: "endDate",
-    //         editorType: "dxDateBox",
-    //         editorOptions: {
-    //             width: "100%",
-    //             type: "datetime",
-    //             readOnly: true
-    //         }
-    //     }, {
-    //         dataField: "price",
-    //         editorType: "dxRadioGroup",
-    //         editorOptions: {
-    //             dataSource: [5, 10, 15, 20],
-    //             itemTemplate: function (itemData) {
-    //                 return "$" + itemData;
-    //             }
-    //         }
-    //     }]);
-    // }
-
-    // getDataObj(objData) {
-    //     for (var i = 0; i < this.data.length; i++) {
-    //         if (this.data[i].startDate.getTime() === objData.startDate.getTime() && this.data[i].theatreId === objData.theatreId)
-    //             return this.data[i];
-    //     }
-    //     return null;
-    // }
-
-    // getMovieById(id) {
-    //     return Query(this.moviesData).filter(["id", "=", id]).toArray()[0];
-    // }
     getActivityByID(id) {
         return this.currentTab.activities[id];
     }
@@ -144,30 +67,47 @@ export class AppComponent {
         this.tabs[index].schedule = [];
         let startingHour = this.startDayHour;
         for (let i = 0; i < students.length; i++) {
-            //console.log("Student Schedule: ", !(students[i].schedules=null))
             let endingHour = startingHour + this.tabs[index].tutorClass.numberOfHours;
             let startingDate = new Date(2015, 4, 25, startingHour);
             let endingDate = new Date(2015, 4, 25, endingHour);
-            if (typeof students[i].schedules=="undefined") {//Is Empty or null
-                students[i].schedules = [];//make sure future code won't run into undefines
-                console.log("Students Schedule is empty now", students[i].schedules);
+            if (this.checkIfUndefinedSchedule(students[i])) {
+                //console.log(students[i].name + " is now Empty")
+                students[i].schedules = [];
             }
-            if (this.noSchedConflictsTF(students[i], startingDate, endingDate)) {
+            // if (this.conflictStudents.length > 0) {
+            //     console.log("Should be John Doe:", this.conflictStudents[this.conflictStudents.length - 1].name);
+            //     if (this.noSchedConflictsTF(this.conflictStudents[this.conflictStudents.length - 1], startingDate, endingDate)) {
+            //         schedule.students.push(this.conflictStudents.pop());
+            //         studentSchedule.startDate = startingDate;
+            //         studentSchedule.endDate = endingDate;
+            //         students[i].schedules.push(studentSchedule);
+            //         console.log("Why Am I")
+            //     }
+            // }
+            if (this.noSchedConflictsTF(students[i], startingDate, endingDate) && schedule.students.length < this.tabs[index].tutorClass.numberOfStudentsPer) {
                 schedule.students.push(students[i]);
                 studentSchedule.startDate = startingDate;
-                    studentSchedule.endDate = endingDate;
-                    //studentSchedule.teacher=schedule.teacher;
-                    students[i].schedules.push(studentSchedule);
-                    //console.log("Students Schedule", students[i].schedules);
-                    studentSchedule=new Schedule();
+                studentSchedule.endDate = endingDate;
+                //studentSchedule.teacher=schedule.teacher;
+                students[i].schedules.push(studentSchedule);
+                console.log("Students Schedule", students[i].schedules);
+                studentSchedule = new Schedule();
+            } else {
+                console.log("John Doe's: ", students[i].schedules);
+                this.conflictStudents.push(students[i]);
+                students.splice(i, 0);
+                console.log(this.conflictStudents);
             }
             if (schedule.students.length === this.tabs[index].tutorClass.numberOfStudentsPer)//3
             {
                 schedule.teacher = this.applyTeacher();
-                if (schedule.teacher !== undefined) {
+                if (this.checkIfUndefinedSchedule(schedule.teacher))
+                    schedule.teacher.schedules = [];
+                if (schedule.teacher !== undefined && this.noSchedConflictsTF(schedule.teacher, startingDate, endingDate)) {
                     schedule.startDate = startingDate;
                     schedule.endDate = endingDate;
                     this.tabs[index].schedule.push(schedule);
+                    console.log(schedule);
 
                     schedule = new Schedule();
                     schedule.divisionID = 0;
@@ -177,27 +117,76 @@ export class AppComponent {
                     startingHour++;
             }
         }
-        //console.log(this.tabs[index].schedule);
         if (schedule.students.length % this.tabs[index].tutorClass.numberOfStudentsPer !== 0) {
             schedule.startDate = new Date(2015, 4, 25, startingHour);
             schedule.endDate = new Date(2015, 4, 25, startingHour + this.tabs[index].tutorClass.numberOfHours);
             schedule.teacher = this.qualifiedTeachers[0];
             this.tabs[index].schedule.push(schedule);
         }
+        if (this.conflictStudents.length > 0) {
+            this.createConflictingTutoringClasses(index);
+        }
     }
-    noSchedConflictsTF(student: Student, start: Date, end: Date): boolean {
-        for (let i = 0; i < student.schedules.length; i++) {
-            if (i < student.schedules.length - 1)//if not the last sched, check two scheds
-                if ((student.schedules[i].startDate < start && student.schedules[i].endDate > start) || (student.schedules[i + 1].startDate < end && student.schedules[i + 1].endDate > end))
+    createConflictingTutoringClasses(index: number) {//assuming the schedule as already been sorted according to time
+        let conflictScheds = new Map<String, Schedule>();
+        let schedule = new Schedule();
+        let desiredStudent:Student[];//it's only one but the splice can only return an array of that object even if it's only one object
+        desiredStudent=[];
+        schedule.divisionID=0;
+        for (let i = 0; i < this.conflictStudents.length; i++) {
+            console.log(this.conflictStudents[i]);
+            schedule.students = [];
+
+            schedule.startDate=this.conflictStudents[i].schedules[this.conflictStudents[i].schedules.length - 1].endDate;
+            if (conflictScheds.get(schedule.startDate.toDateString())&&conflictScheds.get(schedule.startDate.toDateString()).students.length!==this.tabs[index].tutorClass.numberOfStudentsPer) {
+                conflictScheds.get(schedule.startDate.toDateString()).students.push(this.conflictStudents[i]);
+                console.log("Added to a  Conflict Schedule" + conflictScheds.get(schedule.startDate.toDateString()));
+                desiredStudent=[];
+            }
+            else {
+
+                schedule.students.push(this.conflictStudents[i]);
+                schedule.endDate = new Date();
+                schedule.endDate=new Date(2015,4,25,schedule.startDate.getHours()+this.tabs[index].tutorClass.numberOfHours, schedule.startDate.getMinutes())
+                console.log("Start Date for Conflicts: ", schedule.startDate);
+                console.log("End Date for Conflicts: ", schedule.endDate);
+                conflictScheds.set(this.conflictStudents[i].schedules[this.conflictStudents[i].schedules.length - 1].endDate.toDateString(), schedule);
+                console.log("Creating Conflict Schedule", conflictScheds.get(schedule.startDate.toDateString()).students[0]);
+                schedule = new Schedule();
+            }
+        }
+        conflictScheds.forEach(sched=>{
+            sched.teacher=this.applyTeacher();
+            console.log(sched)
+             this.tabs[index].schedule.push(sched);
+            
+        })
+        console.log(this.tabs[index].schedule);
+
+    }
+    noSchedConflictsTF(person: Student | Teacher, start: Date, end: Date): boolean {
+        console.log(person.name);
+        console.log(person.schedules.length);
+
+        for (let i = 0; i < person.schedules.length; i++) {
+            if (i < person.schedules.length - 1)
+                if (person.schedules[i].startDate < start && person.schedules[i].endDate > start && person.schedules[i + 1].startDate < end && person.schedules[i + 1].endDate > end) {
+                    console.log("Schedule Confict 2 sched", person.name);
                     return false;
-                else
+                } else
                     return true;
-            else if (student.schedules[i].startDate < start && student.schedules[i].endDate > start)// last sched
-                return false
-            else
-                return true;
+            else if ((person.schedules[i].startDate < start && person.schedules[i].endDate > start) || (person.schedules[i].startDate < end && person.schedules[i].endDate > end)) {
+                console.log("Schedule Confict 1 sched", person.name);
+                return false;
+            }
         }
         return true;
+    }
+    checkIfUndefinedSchedule(person: Student | Teacher): boolean {
+        if (typeof person.schedules == "undefined") {//Is Empty or null
+            return true;
+        }
+        return false;
     }
     applyTeacher(): Teacher {
         for (let i = 0; i < this.qualifiedTeachers.length; i++)

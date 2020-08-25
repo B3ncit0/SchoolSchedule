@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { scheduled } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -32,9 +33,10 @@ export class Schedule {
   startDate: Date;
   endDate: Date;
   recurrenceRule?: string;
-  teacher?:Teacher;
-  students?:Student[];
+  teacher?: Teacher;
+  students?: Student[];
 }
+
 
 export class Activity {
   activity: string;
@@ -54,31 +56,31 @@ export class Teacher {
   // id: number;
   qualifications: String[];
   schedules?: Schedule[];
-  breakTF:boolean;
+  breakTF: boolean;
 }
 export class Tutoring {
   name: string;
-  numberOfStudentsPer:number;
-  numberOfHours:number;
+  numberOfStudentsPer: number;
+  numberOfHours: number;
   students: Student[];
-  scheduleCreatedTF:boolean;
+  scheduleCreatedTF: boolean;
 }
 let tutoringTeachers: Teacher[] = [
   {
     name: "Bruce Wayne",
-    breakTF:false,
-    qualifications: String[2] = ["Math-CoTeaching","Speech-Therapy" ]
+    breakTF: false,
+    qualifications: String[2] = ["Math-CoTeaching", "Speech-Therapy"]
   }, {
     name: "Mrs. Gutierrez",
-    breakTF:false,
-    qualifications: String[2] = ["Math-CoTeaching","Speech-Therapy" ]
+    breakTF: false,
+    qualifications: String[2] = ["Math-CoTeaching", "Speech-Therapy"]
   }, {
     name: "Dr. Freeze",
-    breakTF:false,
+    breakTF: false,
     qualifications: String[1] = ["Speech-Therapy"]
   }, {
     name: "Mrs. Emsworth",
-    breakTF:false,
+    breakTF: false,
     qualifications: String[2] = ["Speech-Therapy"]
   }
 ]
@@ -401,18 +403,28 @@ let activityData: Activity[] = [
 let tutoring: Tutoring =
 {
   name: "Math-CoTeaching",
-  numberOfStudentsPer:3,
-  scheduleCreatedTF:false,
-  numberOfHours:1,
+  numberOfStudentsPer: 3,
+  scheduleCreatedTF: false,
+  numberOfHours: 1,
   students: Student[7] = [
     {
       name: "John Doe",
       gradeLevelID: 0,
-      studentID: 134
+      studentID: 134,
+      schedules: [{
+        divisionID:0,
+        startDate: new Date(2015, 4, 25, 7, 0),
+        endDate: new Date(2015, 4, 25, 9, 30),
+      }]
     }, {
       name: "Mary Johnson",
       gradeLevelID: 0,
-      studentID: 445
+      studentID: 445,
+      schedules: [{
+        divisionID:0,
+        startDate: new Date(2015, 4, 25, 7, 0),
+        endDate: new Date(2015, 4, 25, 9, 30),
+      }]
     }, {
       name: "Ben Matthews",
       gradeLevelID: 0,
@@ -449,16 +461,16 @@ let tabs: Tab[] = [
   {
     text: "Class Schedule",
     icon: "event",
-    type:"schedule",
+    type: "schedule",
     schedule: classSchedules,
     activities: activityData,
     scheduleDivisions: classData
   }, {
     text: "Tutoring Schedule",
     icon: "event",
-    type:"tutoring",
-    scheduleDivisions:classData,
+    type: "tutoring",
+    scheduleDivisions: classData,
     tutorClass: tutoring,
-    schedule:null
+    schedule: null
   }
 ]

@@ -5,7 +5,7 @@
   </div>
   <div *ngIf="currentTab.type==='schedule'">
     <dx-scheduler id="scheduler" [dataSource]="currentTab.schedule" [views]="['day', 'week', 'timelineDay']"
-      currentView="day" [firstDayOfWeek]="0" [startDayHour]="startDayHour" [endDayHour]="endDayHour"
+      currentView="timelineDay" [firstDayOfWeek]="0" [startDayHour]="startDayHour" [endDayHour]="endDayHour"
       [showAllDayPanel]="false" [groups]="['divisionID']" [currentDate]="currentDate" [crossScrollingEnabled]="true"
       [cellDuration]="30" [width]="1200" [height]="600" appointmentTemplate="Schedule-Data">
       <!-- appointmentTooltipTemplate="Schedule-Datas"> -->
@@ -56,8 +56,8 @@
     <dx-scheduler id="scheduler" [dataSource]="currentTab.schedule" [views]="['day', 'week', 'timelineDay']"
       currentView="day" [firstDayOfWeek]="0" [startDayHour]="startDayHour" [endDayHour]="endDayHour"
       [showAllDayPanel]="false" [groups]="['divisionID']" [currentDate]="currentDate" [crossScrollingEnabled]="true"
-      [cellDuration]="30" [width]="1200" [height]="600" appointmentTemplate="Tutoring-Data">
-      <!-- appointmentTooltipTemplate="Schedule-Datas"> -->
+      [cellDuration]="30" [width]="1200" [height]="600" appointmentTemplate="Tutoring-Data"
+      appointmentTooltipTemplate="Schedule-Datas">
 
       <dxo-editing [allowAdding]="false"></dxo-editing>
 
@@ -70,10 +70,13 @@
       <div *ngIf="timerSetTF">
         <div *dxTemplate="let model of 'Tutoring-Data';let i=index">
           {{currentTab.schedule[i].teacher.name}}
-          <div>
+          <div *ngIf="currentTab.schedule[i].students">
+            <div *ngFor="let student of currentTab.schedule[i].students">{{student.name}}</div>
+            <div>
+            </div>
             Number of Students: {{currentTab.schedule[i].students.length}}
           </div>
-          
+
           <!-- <div class='showtime-preview'>
             <div><strong>{{getActivityByID(model.appointmentData.activityID).activity}}</strong></div>
             <div *ngIf="model">
@@ -85,25 +88,25 @@
           </div> -->
         </div>
       </div>
-      <!-- <div *dxTemplate="let model of 'Schedule-Datas'">
-      <div class='movie-tooltip'>
-        <div><strong>{{getActivityByID(model.appointmentData.activityID).activity}}</strong></div>
-        <div class='dropdown-appointment-dates'>
-          {{(model.appointmentData.startDate | date:'shortTime') + ' - ' + (model.appointmentData.endDate | date:'shortTime')}}
-        </div>
-        <div class='movie-info'>
-                <div class='movie-title'>
-                    {{getMovieById(model.appointmentData.movieId).text + ' (' + getMovieById(model.appointmentData.movieId).year + ')'}}
-                </div>
-                <div>
-                    {{'Director: ' + getMovieById(model.appointmentData.movieId).director}}
-                </div>
-                <div>
-                    {{'Duration: ' + getMovieById(model.appointmentData.movieId).duration + ' minutes'}}
-                </div>
+      <!-- <div *dxTemplate="let model of 'Schedule-Datas'; let i=index">
+        <div class='movie-tooltip'>
+          <div *ngFor="let student of currentTab.schedule[i].students"><strong>{{}}</strong></div>
+          <div class='dropdown-appointment-dates'>
+            {{(model.appointmentData.startDate | date:'shortTime') + ' - ' + (model.appointmentData.endDate | date:'shortTime')}}
+          </div>
+          <div class='movie-info'>
+            <div class='movie-title'>
+              {{getMovieById(model.appointmentData.movieId).text + ' (' + getMovieById(model.appointmentData.movieId).year + ')'}}
             </div>
-      </div>
-    </div> -->
+            <div>
+              {{'Director: ' + getMovieById(model.appointmentData.movieId).director}}
+            </div>
+            <div>
+              {{'Duration: ' + getMovieById(model.appointmentData.movieId).duration + ' minutes'}}
+            </div>
+          </div>
+        </div>
+      </div> -->
     </dx-scheduler>
   </div>
 </div>
